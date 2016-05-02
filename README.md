@@ -1,4 +1,4 @@
-The R scripts assume the use of RStudio and the .rproj file to correctly set the working directory.
+The R scripts assume the use of the .rproj file to correctly set the working directory.
 
 To use without the .rproj file, the working directory has to be set to `<users_path_to_file>/cosine_paper2/` for the file paths to work correctly.
 
