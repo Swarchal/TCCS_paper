@@ -296,14 +296,6 @@ for (i in 1:nrow(pca_df)){
     pca_df$vector_norm[i] <- norm_vector(c(pca_df$PC1[i], pca_df$PC2[i]))
 }
 
-
-fold_180 <- function(x){
-    if (x > 180){ 
-        x <- x - 2 * (x - 180) # reduce 180 by the amount theta is greater than
-    }
-    return(x)
-}
-
 `%notin%` <- function(x, y) !(x %in% y) 
 cutoff_n <- 1
 max_cutoff_n <- 100
