@@ -1,4 +1,0 @@
-To run the analysis use the main.R function, either within R or from the command line with Rscript main.R  which first checks and installs the necessary packages from CRAN and GitHub, and then runs the .R files in analysis/ to generate the plots used in the paper, which are saved as .eps files in figures/.
-
-WARNING: Running the load_packages() or main() function will download and install current R packages from CRAN
-NB. The CellProfiler pipelines will not run, due to the lack of hosted images.
