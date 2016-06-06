@@ -11,9 +11,10 @@ library(dplyr)
 # load data
 df <- read.csv("data/df_cell_subclass.csv")
 
+# principal components of the feature data columns
 pca <- prcomp(df[, get_featuredata(df)])
 
-# variance from principal components
+# figure of cumulative variance of principal components
 setEPS()
 postscript("figures/pca_variance_explained.eps", width = 8, height = 6)
 var_expl <- cumsum(pca$sdev^2 / sum(pca$sdev^2))
@@ -32,13 +33,12 @@ segments(x0 = -10,
 dev.off()
 
 
+# create dataframe of the first 2 principal components and metadata
 pca_df <- data.frame(pca$x[,0:2], # first 2 prin comps
                      df[, grep("Metadata_", colnames(df))]) # metadata
 
 
-###########################################################################
-# z primes (multivariate) of cell lines
-# multivariate z-factor for each cell line
+# calculate the multivariate z-factor for each cell lines
 pca_df_z <- data.frame(pca$x,
                        df[, grep("Metadata_", colnames(df))])
 
@@ -50,7 +50,7 @@ cl_z_factor <- sapply(split(pca_df_z, pca_df_z$Metadata_CellLine),
                                   pos = "STS",
                                   neg = "DMSO")})
 
-# dataframe of cell lines and z_prime values
+# dataframe of cell lines and z-factor values
 cl_z_df <- data.frame(cell_line = rownames(data.frame(cl_z_factor)),
                       z_prime = cl_z_factor)
 
@@ -60,18 +60,20 @@ cl_z_df <- transform(cl_z_df, cell_line = reorder(cell_line, - z_prime))
 
 # dotchart of z-prime values
 ggplot(data = cl_z_df,
-       aes()) + 
+       aes()) +
     geom_segment(aes(x = 0,
                      xend = z_prime,
                      y = cell_line,
                      yend = cell_line),
-                 col = "gray40") + 
-    geom_point(aes(z_prime, cell_line), size = 2.5) + 
-    xlab("multivariate Z'") + 
-    ylab("") + 
+                 col = "gray40") +
+    geom_point(aes(z_prime, cell_line), size = 2.5) +
+    xlab("multivariate Z'") +
+    ylab("") +
     theme(axis.text.y = element_text(face = "bold"))
 ggsave("figures/z_factor.eps", width = 6, height = 4)
 #########################################################################
+
+
 
 # centre principal components so that the DMSO centroid is centered
 # at co-ordinates 0,0
@@ -82,7 +84,7 @@ pca_df <- centre_control(pca_df,
 
 
 
-# euclidean distance
+# euclidean distance function
 distance <- function(x, y){
     dist <- sqrt(x^2 + y^2)
     return(dist)
@@ -101,24 +103,28 @@ df_mda231 <- filter(pca_df, Metadata_CellLine == "MDA231")
 # select single compound data within that cell line
 df_mda231_barasertib <- filter(df_mda231, Metadata_compound == "barasertib")
 
-ggplot() + 
+
+# scatter plot of first 2 principal components
+# barasertib datapoints coloured by concentration
+ggplot() +
     geom_point(data = df_mda231,
                colour = "gray50",
                aes(x = PC1,
-                   y = PC2)) + 
+                   y = PC2)) +
     geom_point(size = 3,
                data = df_mda231_barasertib,
                aes(x = PC1,
                    y = PC2,
-                   colour = Metadata_concentration)) + 
+                   colour = Metadata_concentration)) +
     geom_line(data = df_mda231_barasertib,
               size = 1,
               aes(x = PC1,
                   y = PC2,
-                  colour = Metadata_concentration)) + 
+                  colour = Metadata_concentration)) +
     scale_color_viridis(name = "Concentration (nM)",
                         trans = "log10")
 ggsave("figures/increasing_barasertib_mda231.eps", width = 8, height = 6)
+
 
 compound <- "cycloheximide"
 # select a single cell line
@@ -127,24 +133,27 @@ df_mda231 <- filter(pca_df, Metadata_CellLine == "MDA231")
 # select single compound data within that cell line
 df_mda231_compound <- filter(df_mda231, Metadata_compound == compound)
 
-ggplot() + 
+# scatter plot of first 2 principal components of cycloheximide
+# points coloured by concentration
+ggplot() +
     geom_point(data = df_mda231,
                colour = "gray50",
                aes(x = PC1,
-                   y = PC2)) + 
+                   y = PC2)) +
     geom_point(size = 3,
                data = df_mda231_compound,
                aes(x = PC1,
                    y = PC2,
-                   colour = Metadata_concentration)) + 
+                   colour = Metadata_concentration)) +
     geom_line(data = df_mda231_compound,
               size = 1,
               aes(x = PC1,
                   y = PC2,
-                  colour = Metadata_concentration)) + 
+                  colour = Metadata_concentration)) +
     scale_color_viridis(name = "Concentration (nM)",
                         trans = "log10")
 ggsave("figures/increasing_cycloheximide_mda231.eps", width = 8, height = 6)
+
 
 
 pca_df$theta <- NA # initialise empty column for loop
@@ -155,53 +164,61 @@ for (i in 1:nrow(pca_df)){
 }
 
 
-# just barasertib data:
+# filter just barasertib data
 df_barasertib <- filter(pca_df, Metadata_compound == "barasertib")
+
+# circular hisotgram of batasertib theta values
 ggplot(data = df_barasertib,
        aes(x = theta,
-           group = Metadata_concentration)) + 
+           group = Metadata_concentration)) +
     geom_histogram(binwidth = 15,
-                   aes(fill = Metadata_concentration)) + 
-    coord_polar(start = -1.57, direction = -1) + 
+                   aes(fill = Metadata_concentration)) +
+    coord_polar(start = -1.57, direction = -1) +
     scale_x_continuous(breaks = seq(0, 360, by = 45), expand = c(0,0), lim = c(0, 360)) +
-    scale_size_area() + 
+    scale_size_area() +
     xlab("") + ylab("") +
     scale_fill_viridis(name = "concentration (nM)",
                        trans = "log10")
 ggsave("figures/directional_histogram_barasertib.eps", width = 8, height = 6)
 
+
+# circular histogram of batasertib theta values
+# small plot for each cell line
 ggplot(data = df_barasertib,
        aes(x = theta,
-           group = Metadata_concentration)) + 
+           group = Metadata_concentration)) +
     geom_histogram(binwidth = 15,
-                   aes(fill = Metadata_concentration)) + 
-    coord_polar(start = -1.57, direction = -1) + 
+                   aes(fill = Metadata_concentration)) +
+    coord_polar(start = -1.57, direction = -1) +
     scale_x_continuous(breaks = seq(0, 360, by = 45), expand = c(0,0), lim = c(0, 360)) +
-    scale_size_area() + 
+    scale_size_area() +
     scale_fill_viridis(name = "concentration (nM)",
                        trans = "log10") +
     xlab("") + ylab("") +
-    facet_wrap(~Metadata_CellLine, ncol = 2) + 
+    facet_wrap(~Metadata_CellLine, ncol = 2) +
     theme(axis.text.x = element_text(size = 6))
 ggsave("figures/directional_histogram_barasertib_split.eps", width = 8, height = 12)
 
-cmp <- "monastrol"
-wanted_compounds <- c(cmp, "barasertib")
+
+# filter barasertib and monastrol data
+wanted_compounds <- c("monastrol", "barasertib")
 df_two <- filter(pca_df, Metadata_compound %in% wanted_compounds, Metadata_CellLine == "MDA231")
 df_two$Metadata_compound <- relevel(df_two$Metadata_compound, "cycloheximide")
 
+# circular histogram of barasetib and monastrol data
 ggplot(data = df_two,
        aes(x = theta,
-           group = Metadata_compound)) + 
+           group = Metadata_compound)) +
     geom_histogram(binwidth = 15,
-                   aes(fill = Metadata_compound)) + 
-    coord_polar(start = -1.57, direction = -1) + 
+                   aes(fill = Metadata_compound)) +
+    coord_polar(start = -1.57, direction = -1) +
     scale_x_continuous(breaks = seq(0, 360, by = 45), expand = c(0,0), lim = c(0, 360)) +
-    scale_size_area() + 
+    scale_size_area() +
     scale_fill_brewer(name = "compound", palette = "Set2")
 ggsave("figures/barasertib_monastrol_hist.eps", width = 8, height = 6)
 
 
+# function to calculate the average vector from replicates
 average_vector <- function(dat){
     # data will be in the form of rows = vectors, columns = components
     means <- as.vector(colMedians(dat))
@@ -209,40 +226,49 @@ average_vector <- function(dat){
 }
 
 
+# filter just barasertib data from MDA-231 cell line
 barasertib_data <- filter(pca_df, Metadata_compound == "barasertib" &
                               Metadata_CellLine == "MDA231")
+
+# calculate the average vector from the replicates of baraserib in MDA231
+# from the vector(PC1, PC2)
 vector_info_barasertib <- matrix(c(barasertib_data$PC1, barasertib_data$PC2), ncol = 2)
 vector_barasertib <- average_vector(vector_info_barasertib)
 
+# filter monastrol data from MDA-231 cell line
 monastrol_data <- filter(pca_df, Metadata_compound == "monastrol" &
                              Metadata_CellLine == "MDA231")
+
+# calculate the average vector from the replicates of monastrol in MDA231
+# from the vector(PC1, PC2)
 vector_info_monastrol <- matrix(c(monastrol_data$PC1, monastrol_data$PC2), ncol = 2)
 vector_monastrol <- average_vector(vector_info_monastrol)
 
+# calculate theta between two the averaged vectors of baraserib and monastrol
 theta_out <- theta(vector_barasertib, vector_monastrol)
 
 
-
-cmp <- "monastrol"
-wanted_compounds <- c(cmp, "barasertib")
-df_two <- filter(pca_df, Metadata_compound %in% wanted_compounds, Metadata_CellLine == "MDA231")
-df_two$Metadata_compound <- relevel(df_two$Metadata_compound, "cycloheximide")
-
+# circular histogram of theta values from monastrol and barasertib
+# this time labelled with the average vector and calcualted theta value
+# between the two vectors
 ggplot(data = df_two,
        aes(x = theta,
-           group = Metadata_compound)) + 
+           group = Metadata_compound)) +
     geom_histogram(binwidth = 15,
-                   aes(fill = Metadata_compound)) + 
-    coord_polar(start = -1.57, direction = -1) + 
+                   aes(fill = Metadata_compound)) +
+    coord_polar(start = -1.57, direction = -1) +
     scale_x_continuous(breaks = seq(0, 360, by = 45), expand = c(0,0), lim = c(0, 360)) +
-    scale_size_area() + 
-    geom_vline(xintercept = theta0(vector_monastrol)) + 
-    geom_vline(xintercept = theta0(vector_barasertib)) + 
+    scale_size_area() +
+    geom_vline(xintercept = theta0(vector_monastrol)) +
+    geom_vline(xintercept = theta0(vector_barasertib)) +
     geom_text(data = NULL, size = 4, x = 225, y = 10,
-              label = paste("theta =", format(round(theta_out, 2), nsmall = 2))) + 
+              label = paste("theta =", format(round(theta_out, 2), nsmall = 2))) +
     scale_fill_brewer(name = "compound", palette = "Set2")
 ggsave("figures/barasertib_monastrol_hist_ann.eps", width = 8, height = 6)
 
+
+# calculate theta value between two cell lines (MDA231 & HCC1569) from their
+# average PC1/2 vectors
 # select barasertib data for MDA231 and HCC1569 lines:
 data_comp_cells <- filter(pca_df, Metadata_compound == "barasertib",
                           Metadata_CellLine == "MDA231" | Metadata_CellLine == "HCC1569")
@@ -251,23 +277,27 @@ data_comp_cells <- filter(pca_df, Metadata_compound == "barasertib",
 just_mda <- filter(data_comp_cells, Metadata_CellLine == "MDA231")
 vector_mda <- average_vector(matrix(c(just_mda$PC1, just_mda$PC2), ncol = 2))
 
+# mean vector HCC1569
 just_hcc <- filter(data_comp_cells, Metadata_CellLine == "HCC1569")
 vector_hcc <- average_vector(matrix(c(just_hcc$PC1, just_hcc$PC2), ncol = 2))
 
+# theta value between the 2 cell line's averaged vectors
 theta_out <- theta(vector_mda, vector_hcc)
 
+# circular histogram of MDA-231 and HCC1569 treated with barasertib, with
+# labelled average vectors and theta value between the two cell lines
 ggplot(data = data_comp_cells,
        aes(x = theta,
-           group = Metadata_CellLine)) + 
+           group = Metadata_CellLine)) +
     geom_histogram(binwidth = 15,
-                   aes(fill = Metadata_CellLine)) + 
-    coord_polar(start = -1.57, direction = -1) + 
+                   aes(fill = Metadata_CellLine)) +
+    coord_polar(start = -1.57, direction = -1) +
     scale_x_continuous(breaks = seq(0, 360, by = 45), expand = c(0,0), lim = c(0, 360)) +
-    scale_size_area() + 
-    geom_vline(xintercept = theta0(vector_mda)) + 
-    geom_vline(xintercept = theta0(vector_hcc)) + 
+    scale_size_area() +
+    geom_vline(xintercept = theta0(vector_mda)) +
+    geom_vline(xintercept = theta0(vector_hcc)) +
     geom_text(data = NULL, size = 4, x = 175, y = 15,
-              label = paste("theta =", format(round(theta_out, 2), nsmall = 2))) + 
+              label = paste("theta =", format(round(theta_out, 2), nsmall = 2))) +
     scale_fill_brewer(name = "Cell line", palette = "Pastel1")
 ggsave("hcc1569_231_hist_ann.eps", width = 8, height = 6)
 
@@ -275,47 +305,63 @@ ggsave("hcc1569_231_hist_ann.eps", width = 8, height = 6)
 #---          Cosine analysis         ---#
 ##########################################
 
+
+# filter single concentration (100nM)
 concentration <- 1000
-df_100 <- filter(df, Metadata_concentration == concentration)
+df_1000 <- filter(df, Metadata_concentration == concentration)
 controls <- c("DMSO", "STS")
+# get control data (DMSO & staurosporine)
 df_dmso <- filter(df, Metadata_compound %in% controls)
 
-df_new <- rbind(df_100, df_dmso)
+# row-bind 100nM and control data into a single dataframe
+df_new <- rbind(df_1000, df_dmso)
 
-# principal component analysis
+# calculate the first two principal components of the featuredata
 pca_out <- prcomp(df_new[, get_featuredata(df_new)])$x[,1:2]
+# create dataframe of first two principal components and metadata
 pca_df <- data.frame(pca_out,
                      df_new[, grep("Metadata_", colnames(df))])
 
 
 # calculate theta and vector distances
+# initialise empty columns for loop
 pca_df$theta <- NA
 pca_df$vector_norm <- NA
+# loop through rows of principal components, calculating the theta value
+# against a place-holder vector (1, 0), and the norm from the origin
 for (i in 1:nrow(pca_df)){
     pca_df$theta[i] <- theta0(c(pca_df$PC1[i], pca_df$PC2[i]))
     pca_df$vector_norm[i] <- norm_vector(c(pca_df$PC1[i], pca_df$PC2[i]))
 }
 
-`%notin%` <- function(x, y) !(x %in% y) 
+# create %notin% function
+`%notin%` <- function(x, y) !(x %in% y)
+
+# create cutoff constants
 cutoff_n <- 1
 max_cutoff_n <- 100
+
+# calculate cutoff from standard deviations of the norms from the origin
 cutoff <- cutoff_n * sd(pca_df$vector_norm)
 max_cutoff <- max_cutoff_n * sd(pca_df$vector_norm)
-
 
 pca_df$cutoff <- paste("<", cutoff_n)
 pca_df$cutoff[pca_df$vector_norm > cutoff] <- paste(max_cutoff_n, "> x >", cutoff_n)
 pca_df$cutoff[pca_df$vector_norm > max_cutoff] <- paste(">", max_cutoff_n)
 
+# scatter plot of first two principal components, coloured by whether they are
+# beyond the cut-off value or not
 ggplot(data = pca_df,
        aes(x = PC1,
            y = PC2,
-           col = as.factor(cutoff))) + 
-    geom_point() + 
-    coord_fixed() + 
+           col = as.factor(cutoff))) +
+    geom_point() +
+    coord_fixed() +
     scale_color_brewer("Standard deviations", palette = "Set1")
 ggsave("figures/cutoff.eps", width = 8, height = 6)
 
+
+# unwanted control data labels
 unwanted <- c("DMSO", "STS")
 
 cell_lines <- c("MDA231",
@@ -328,10 +374,12 @@ cell_lines <- c("MDA231",
                 "HCC1954")
 
 
+# function to filter rows that are beyond the cutoff for each cell line
+# in the compound data
 cell_line_cutoff <- function(x){
     filter(pca_df, Metadata_CellLine == x,
            vector_norm > cutoff,
-           Metadata_compound %notin% unwanted) %>% 
+           Metadata_compound %notin% unwanted) %>%
         distinct(Metadata_compound)
 }
 
@@ -383,12 +431,12 @@ names(diag_out)[2] <- "difference"
 diag_out$drug <- with(diag_out, reorder(drug, difference))
 
 
-cell_lines <- c("mda231", 
-                "skbr3", 
-                "mda157", 
-                "t47d", 
-                "kpl4", 
-                "mcf7", 
+cell_lines <- c("mda231",
+                "skbr3",
+                "mda157",
+                "t47d",
+                "kpl4",
+                "mcf7",
                 "hcc1569",
                 "hcc1954")
 
@@ -412,23 +460,23 @@ find_delta_theta <- function(a, b){
     b_ <- get(b)
     th_A <- a_$theta
     th_B <- b_$theta
-    
+
     out_test <- sapply(th_A, function(x, y = th_B){abs(x - y)})
     out_test <- apply(out_test, 1:2, fold_180)
     # compound vectors are identical across all cell lines
     # use any one of them (mda231 in this case)
     dimnames(out_test) <- list(mda231$Metadata_compound, mda231$Metadata_compound)
-    
+
     # can use diag() to extract the diagonal of the matrix, which returns the angle
     # between the drugs between the two cell-lines
     diag_out <- as.data.frame(diag(out_test))
     diag_out <- cbind(drug = rownames(diag_out), diag_out)
     rownames(diag_out) <- NULL
     names(diag_out)[2] <- "difference"
-    
+
     diag_out$A <- eval(substitute(a))   # add cell-line name
     diag_out$B <- eval(substitute(b))   # add cell-line name
-    
+
     # refactor 'drug' so in numerical order according to difference
     diag_out$drug <- with(diag_out, reorder(drug, difference))
     diag_out
