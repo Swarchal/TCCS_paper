@@ -45,10 +45,8 @@ colnames(out) <- x
 # values close to 360 will be very similar
 # horrible hack to get around this:
 fold_180 <- function(x){
-    if (x > 180){ 
-        x <- x - 2 * (x - 180) # reduce 180 by the amount theta is greater than
-    }
-    return(x)
+    out <- ifelse(x > 180, 360 - x, x)
+    return(out)
 }
 
 # apply function to every cell in the matrix
