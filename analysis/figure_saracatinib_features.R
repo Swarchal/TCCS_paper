@@ -11,9 +11,9 @@ df_sub$Metadata_CellLine <- factor(df_sub$Metadata_CellLine, levels(df_sub$Metad
 
 ggplot(data = df_sub,
        aes(x = Metadata_CellLine,
-           y = cell_Neighbors_NumberOfNeighbors_2)) + 
-    geom_boxplot(fill = "darkorange") + 
-    geom_jitter(width = 0.4) + 
+           y = cell_Neighbors_NumberOfNeighbors_2)) +
+    geom_boxplot(fill = "darkorange") +
+    geom_jitter(width = 0.4) +
     xlab("Cell Line") +
-    ylab("Z-score Number of Neighbours (cells)") 
+    ylab("Z-score Number of Neighbors (cells)") 
 ggsave("figures/saracatinib_features.eps", width = 5, height = 4)
