@@ -14,24 +14,6 @@ df <- read.csv("data/df_cell_subclass.csv")
 # principal components of the feature data columns
 pca <- prcomp(df[, get_featuredata(df)])
 
-# figure of cumulative variance of principal components
-setEPS()
-postscript("figures/pca_variance_explained.eps", width = 8, height = 6)
-var_expl <- cumsum(pca$sdev^2 / sum(pca$sdev^2))
-prop_var <- 0.85
-n_components <- min(which(var_expl >= prop_var))
-plot(var_expl, type = "l",
-     xlab = "principal components",
-     ylab = "cumulative variance")
-segments(x0 = n_components,
-         y0 = -10,
-         y1 = prop_var, lty = 2)
-segments(x0 = -10,
-         x1 = n_components,
-         y0 = prop_var,
-         lty = 2)
-dev.off()
-
 
 # create dataframe of the first 2 principal components and metadata
 pca_df <- data.frame(pca$x[,0:2], # first 2 prin comps
