@@ -108,12 +108,12 @@ ggplot() +
 ggsave("figures/increasing_barasertib_mda231.eps", width = 8, height = 6)
 
 
-compound <- "cycloheximide"
 # select a single cell line
 df_mda231 <- filter(pca_df, Metadata_CellLine == "MDA231")
 
 # select single compound data within that cell line
-df_mda231_compound <- filter(df_mda231, Metadata_compound == compound)
+df_mda231_cycloheximide <- filter(df_mda231,
+                                  Metadata_compound == "cycloheximide")
 
 # scatter plot of first 2 principal components of cycloheximide
 # points coloured by concentration
@@ -123,11 +123,11 @@ ggplot() +
                aes(x = PC1,
                    y = PC2)) +
     geom_point(size = 3,
-               data = df_mda231_compound,
+               data = df_mda231_cycloheximide,
                aes(x = PC1,
                    y = PC2,
                    colour = Metadata_concentration)) +
-    geom_line(data = df_mda231_compound,
+    geom_line(data = df_mda231_cycloheximide,
               size = 1,
               aes(x = PC1,
                   y = PC2,
