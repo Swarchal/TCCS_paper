@@ -5,8 +5,7 @@ library(gtools)
 library(ggplot2)
 
 # load data
-# TODO change from absolute path when not using hydrogen
-df <- read.csv("~/Dropbox/TCCS_paper/data/df_cell_subclass.csv")
+df <- read.csv("data/df_cell_subclass.csv")
 
 # just a single cell line in this example to make things more simple
 df <- filter(df, Metadata_CellLine == "MDA231")
