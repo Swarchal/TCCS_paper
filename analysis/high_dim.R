@@ -4,6 +4,16 @@ library(phenoScreen)
 library(gtools)
 library(ggplot2)
 
+
+###############################################################################
+# Example workflow showing how to use the TCCS method with high-dimensional data.
+# This may be needed when the dataset contains many measured features, so that
+# two principal components do not represent a large enough proportion of the
+# variance contained in the data, or when screening a large number of compounds
+# that require greater discriminating power to separate them from each other
+###############################################################################
+
+
 # load data
 df <- read.csv("data/df_cell_subclass.csv")
 
@@ -30,25 +40,33 @@ df_centered <- centre_control(df2,
                               cmpd_col = "Metadata_compound",
                               cmpd = "DMSO")
 
+
+#-----------------------------------------------------------------------------
+# For a more unbiased approach at selecting the dimensionality of the dataset,
+# it's common to use the number of principal components that capture a specified
+# proportion of the variance in the data.
+#
+# In this case we demonstrate using the minumum number of principal components
+# that capture 70% of the variance in out dataset
+
+
 # calculate number of principal components to capture 70% of the variance
 n_pc <- min(which(cumsum(pca$sdev^2) / sum(pca$sdev^2) >= 0.7))
 
-# remove the DMSO values from the cosine calculation
-#df_centered <- filter(df_centered, Metadata_compound != "DMSO")
-
+pdf("figures/cumulative_PC_variance.pdf")
 plot(cumsum(pca$sdev^2) / sum(pca$sdev^2),
      type = "l", lwd = 3, col = "cornflowerblue",
      main = "Cumulative variance\ndescribed by principal components",
      xlab = "Principal component",
      ylab = "Prop. variance")
-
+dev.off()
 #---------------------------
 # Need to remove points within a minimum distance of the DMSO centroid
 # distance of each point from the DMSO centroid?
 # points are now centered at dmso centroid due to `centre_control()`, so we can
 # calculate the distance from the origin to each point. Though in high-dimensional
 # space l1 norm (Manhattan distance) might be more sensible than Euclidean distance
-
+#---------------------------
 
 l1_dist_from_origin <- function(x) {
     origin <- rep(0, length(x))
