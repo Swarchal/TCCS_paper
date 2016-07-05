@@ -53,6 +53,9 @@ df_centered <- centre_control(df2,
 # calculate number of principal components to capture 70% of the variance
 n_pc <- min(which(cumsum(pca$sdev^2) / sum(pca$sdev^2) >= 0.7))
 
+cat("PCS that capture 70% variance = ", n_pc, "\n")
+
+# plot principal components against cumulativ variance
 pdf("figures/cumulative_PC_variance.pdf")
 plot(cumsum(pca$sdev^2) / sum(pca$sdev^2),
      type = "l", lwd = 3, col = "cornflowerblue",
