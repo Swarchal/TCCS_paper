@@ -121,6 +121,7 @@ cosine_pairs <- function(x, cols, degrees = TRUE) {
 
         # loop through rows in cmpd A and cmpd B
         # calculate the cosine similarity between the two vectors
+        # store values as co-ordinates in the matrix
         for (j in 1:nrow(tmp1)) {
             for (k in 1:nrow(tmp2)) {
                 mat[j, k] <- cosine_sim_vector(tmp1[j, cols],
@@ -157,13 +158,8 @@ cosine_out_n10 <- cosine_pairs(df_split, cols = 1:10)
 # ouput for dimensionality = 260
 cosine_out_nall <- cosine_pairs(df_split, cols = 1:260)
 
-df_agg <- cosine_out %>% group_by_("A", "B") %>% summarise(vals = mean(vals))
-df_2_agg <- cosine_out_n2 %>% group_by_("A", "B") %>% summarise(vals = mean(vals))
-df_10_agg <- cosine_out_n10%>% group_by_("A", "B") %>% summarise(vals = mean(vals))
-df_all_agg <- cosine_out_nall %>% group_by_("A", "B") %>% summarise(vals = mean(vals))
 
-
-ggplot(data = df_agg,
+ggplot(data = cosine_out,
       aes(x = A, y = B,
           fill = vals)) +
     geom_tile() +
@@ -174,7 +170,7 @@ ggplot(data = df_agg,
     ggtitle("n PC = 70% variance")
 ggsave("figures/PC70.pdf")
 
-ggplot(data = df_2_agg,
+ggplot(data = cosine_out_n2,
       aes(x = A, y = B,
           fill = vals)) +
     geom_tile() +
@@ -185,7 +181,7 @@ ggplot(data = df_2_agg,
     ggtitle("n PC = 2")
 ggsave("figures/PC2.pdf")
 
-ggplot(data = df_10_agg,
+ggplot(data = cosine_out_n10,
       aes(x = A, y = B,
           fill = vals)) +
     geom_tile() +
@@ -196,7 +192,7 @@ ggplot(data = df_10_agg,
     ggtitle("n PC = 10")
 ggsave("figures/PC10.pdf")
 
-ggplot(data = df_all_agg,
+ggplot(data = cosine_out_nall,
       aes(x = A, y = B,
           fill = vals)) +
     geom_tile() +
