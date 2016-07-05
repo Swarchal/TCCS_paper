@@ -281,7 +281,7 @@ ggplot(data = data_comp_cells,
     geom_text(data = NULL, size = 4, x = 175, y = 15,
               label = paste("theta =", format(round(theta_out, 2), nsmall = 2))) +
     scale_fill_brewer(name = "Cell line", palette = "Pastel1")
-ggsave("hcc1569_231_hist_ann.eps", width = 8, height = 6)
+ggsave("figures/hcc1569_231_hist_ann.eps", width = 8, height = 6)
 
 ##########################################
 #---          Cosine analysis         ---#
