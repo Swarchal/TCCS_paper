@@ -26,7 +26,7 @@ load_packages <- function(){
 
     for (package in cran_packages){
         if (!require(package, character.only = TRUE)){
-            install.packages(package)
+            install.packages(package, repos='http://cran.us.r-project.org')
         }
     }
 
