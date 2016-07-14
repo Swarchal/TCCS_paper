@@ -63,8 +63,6 @@ df_cmpd$Metadata_compound <- factor(df_cmpd$Metadata_compound)
 # select just feature data and compound labels
 df_cmpd <- df_cmpd[, c(1:260, 266)]
 
-head(df_cmpd)
-
 df_agg <- group_by(df_cmpd, Metadata_compound) %>%
     summarise_each(funs(mean))
 
