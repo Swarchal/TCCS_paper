@@ -11,11 +11,17 @@ library(ggplot2)
 # two principal components do not represent a large enough proportion of the
 # variance contained in the data, or when screening a large number of compounds
 # that require greater discriminating power to separate them from each other
+#
+# N.B the inactive compounds in this example are determined using the distance
+# from the DMSO 260 dimensional space, this is in order to compare the results
+# from various number of dimensions. In practice, it's recommended that the
+# distance measure should be calculated in this same dimensionality as used to
+# determine the theta value.
 ###############################################################################
 
 
 # load data
-df <- read.csv("data/df_cell_subclass.csv")
+df <- read.csv("../../data/df_cell_subclass.csv")
 
 # just a single cell line in this example to make things more simple
 df <- filter(df, Metadata_CellLine == "MDA231")
@@ -56,7 +62,7 @@ n_pc <- min(which(cumsum(pca$sdev^2) / sum(pca$sdev^2) >= 0.7))
 cat(" -- principal components that capture 70% variance = ", n_pc, "\n")
 
 # plot principal components against cumulativ variance
-pdf("figures/cumulative_PC_variance.pdf")
+pdf("../../figures/cumulative_PC_variance.pdf")
 plot(cumsum(pca$sdev^2) / sum(pca$sdev^2),
      type = "l", lwd = 3, col = "cornflowerblue",
      main = "Cumulative variance\ndescribed by principal components",
@@ -89,14 +95,13 @@ df_centered$Metadata_dist_from_origin <- apply(df_centered[, 1:260], 1,
                                                l1_dist_from_origin)
 
 controls <- c("DMSO", "STS")
-`%notin%` = function(x,y) !(x %in% y)
+`%notin%` <- function(x,y) !(x %in% y)
 df_cmpd <- filter(df_centered,
                   Metadata_compound %notin% controls & Metadata_dist_from_origin > cutoff)
 
 # don't subset yet, want to keep all dimensionality to run tests
 df_sub <- data.frame(df_cmpd[, 1:260],
                      df_cmpd[, grep("Metadata", colnames(df_cmpd))])
-
 
 # refactor to remove empty classes (i.e STS)
 df_sub$Metadata_compound <- factor(df_sub$Metadata_compound)
@@ -135,7 +140,6 @@ cosine_pairs <- function(x, cols, degrees = TRUE) {
         tmp1 <- x[[pairs_names[i, 1]]]
         tmp2 <- x[[pairs_names[i, 2]]]
 
-
         # store values in a matrix
         mat <- matrix(nrow = nrow(tmp1),
                       ncol = nrow(tmp2))
@@ -158,7 +162,7 @@ cosine_pairs <- function(x, cols, degrees = TRUE) {
 
     }
 
-    # convert cosine similarity to 0 -> 180 degrees
+    # convert cosine similarity to 0 -> 180 degrees (biologist friendly)
     if (degrees) {
         vals <- (1 - cossim_to_angsim(vals)) / (1/180)
     }
@@ -180,6 +184,9 @@ cosine_out_n10 <- cosine_pairs(df_split, cols = 1:10)
 cosine_out_nall <- cosine_pairs(df_split, cols = 1:260)
 
 
+
+# Plotting
+
 ggplot(data = cosine_out,
       aes(x = A, y = B,
           fill = vals)) +
@@ -189,7 +196,7 @@ ggplot(data = cosine_out,
     Smisc::xlab_rotate() +
     xlab("") + ylab("") +
     ggtitle("n PC = 70% variance")
-ggsave("figures/PC70.pdf")
+ggsave("../../figures/PC70.pdf")
 
 ggplot(data = cosine_out_n2,
       aes(x = A, y = B,
@@ -200,7 +207,7 @@ ggplot(data = cosine_out_n2,
     Smisc::xlab_rotate() +
     xlab("") + ylab("") +
     ggtitle("n PC = 2")
-ggsave("figures/PC2.pdf")
+ggsave("../../figures/PC2.pdf")
 
 ggplot(data = cosine_out_n10,
       aes(x = A, y = B,
@@ -211,7 +218,7 @@ ggplot(data = cosine_out_n10,
     Smisc::xlab_rotate() +
     xlab("") + ylab("") +
     ggtitle("n PC = 10")
-ggsave("figures/PC10.pdf")
+ggsave("../../figures/PC10.pdf")
 
 ggplot(data = cosine_out_nall,
       aes(x = A, y = B,
@@ -222,4 +229,4 @@ ggplot(data = cosine_out_nall,
     Smisc::xlab_rotate() +
     xlab("") + ylab("") +
     ggtitle("n PC = all")
-ggsave("figures/PCall.pdf")
+ggsave("../../figures/PCall.pdf")
