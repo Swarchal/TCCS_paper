@@ -12,6 +12,7 @@ load_packages <- function(){
         "readr",
         "caret",
         "gtools",
+        "platetools",
         "viridis",
         "gplots",
         "ggplot2"
